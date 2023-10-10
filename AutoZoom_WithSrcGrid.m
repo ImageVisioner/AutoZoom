@@ -3,7 +3,7 @@ clear
 close all
 
 % 图像文件列表
-images = {'1.jpg', '2.jpg', '3.jpg','4.jpg','5.jpg','6.jpg','7.jpg','8.jpg','9.jpg'}; % 替换为实际的文件路径和名称
+images = {'1.bmp', '2.jpg', '3.jpg','4.jpg','5.jpg','6.jpg','7.jpg','8.jpg','9.jpg','10.jpg'}; % 替换为实际的文件路径和名称
 numImages = length(images);
 
 % 读取并显示第一张图像，用于交互式定义切割区域
@@ -14,7 +14,7 @@ h = drawrectangle;
 
 % 设定线宽和颜色
 h.LineWidth = 2;
-h.Color = 'r'; % 设定颜色为红色
+h.Color = 'green'; % 设定颜色为红色
 
 position = customWait(h); % 获取切割区域坐标clocl;
 
@@ -33,7 +33,7 @@ for i = 1:numImages
     % 在各图像截取区域显示红框并保存到本地
     figure; imshow(I); hold on;
     rectangle('Position',position,...
-              'EdgeColor','r',...
+              'EdgeColor','green',...
               'LineWidth', 2);
     hold off;
     
@@ -41,7 +41,7 @@ for i = 1:numImages
     F = getframe(gca);
     figureCropped = F.cdata;
     
-    figureFilename = fullfile(figureFolderPath, sprintf('figure_%d.jpg', i));
+    figureFilename = fullfile(figureFolderPath, sprintf('figure_%d.bmp', i));
     imwrite(figureCropped, figureFilename);
     close(gcf); 
 end
@@ -62,7 +62,7 @@ if ~exist(newFolderPath, 'dir')
 end
 
 for i = 1 : numImages
-    newFilename = fullfile(newFolderPath, sprintf('crop_%d.jpg', i));
+    newFilename = fullfile(newFolderPath, sprintf('crop_%d.bmp', i));
     imwrite(croppedImages{i}, newFilename);
 end
 
