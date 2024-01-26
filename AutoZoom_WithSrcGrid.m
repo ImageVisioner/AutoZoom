@@ -1,9 +1,10 @@
 clc 
-clear 
+clear all
+
 close all
 
 % 图像文件列表
-images = {'1.bmp', '2.jpg', '3.jpg','4.jpg','5.jpg','6.jpg','7.jpg','8.jpg','9.jpg','10.jpg'}; % 替换为实际的文件路径和名称
+images = {'1.png', '2.png', '3.png','4.png','5.png','6.png','7.png','8.png'}; % 替换为实际的文件路径和名称
 numImages = length(images);
 
 % 读取并显示第一张图像，用于交互式定义切割区域
@@ -34,8 +35,10 @@ for i = 1:numImages
     % 在各图像截取区域显示红框并保存到本地
     figure; imshow(I); hold on;
     rectangle('Position',position,...
-              'EdgeColor','green',...
+              'EdgeColor','red',...
               'LineWidth', 2);
+    set(gcf, 'ToolBar', 'none');
+    
     hold off;
     
     % 将图像中带有红框的部分保存到新的文件夹

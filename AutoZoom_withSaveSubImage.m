@@ -3,7 +3,7 @@
 % 通过控制newFolderPath修改子图的路径和名字
 clc 
 clear 
-images = {'1.jpg', '2.jpg', '3.jpg','4.jpg','5.jpg','6.jpg','7.jpg','8.jpg','9.jpg'}; % 替换为实际的文件路径和名称
+images = {'1.png', '2.png', '3.png','4.png','5.png','6.png','7.png','8.png'}; % 替换为实际的文件路径和名称
 numImages = length(images);
 
 % 读取并显示第一张图像，用于交互式定义切割区域
