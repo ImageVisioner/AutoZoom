@@ -18,6 +18,7 @@ h.Color = 'green'; % 设定颜色为红色
 
 position = customWait(h); % 获取切割区域坐标clocl;
 
+
 % 截取各图像的指定区域并存储
 croppedImages = cell(1, numImages);
 figureFolderPath = './figureImage';
