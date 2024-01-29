@@ -13,6 +13,8 @@ figure;
 imshow(I1);
 h = drawrectangle;
 
+
+
 % 设定线宽和颜色
 h.LineWidth = 2;
 h.Color = 'green'; % 设定颜色为红色
