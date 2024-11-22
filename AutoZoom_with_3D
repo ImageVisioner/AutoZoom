@@ -1,0 +1,155 @@
+clc;
+clear all;
+close all;
+
+% 图像文件列12.bmp表
+images = {'kejianguangyuantu.png', 'saryuantu.png', 'mean.bmp','opt_1.bmp','sar_1.bmp','our.bmp'}; % 替换为实际的文件路径和名称
+numImages = length(images);
+
+% 读取并显示第一张图像，用于交互式定义切割区域
+I1 = imread(images{1});
+I1 = im2gray(I1); % 转换为灰度图
+figure;
+imshow(I1);
+h = drawrectangle;
+
+% 设定线宽和颜色
+h.LineWidth = 2;
+h.Color = 'green'; % 设定颜色为绿色
+
+position = customWait(h); % 获取切割区域坐标
+
+% 截取各图像的指定区域并存储
+croppedImages = cell(1, numImages);
+figureFolderPath = './figureImage';
+if ~exist(figureFolderPath, 'dir')
+    mkdir(figureFolderPath)
+end
+
+for i = 1:numImages
+    I = imread(images{i});
+    I = im2gray(I); % 转换为灰度图
+    croppedImage = imcrop(I, position);
+    croppedImages{i} = croppedImage;  % 保存裁剪的图片
+    
+    % 在各图像截取区域显示红框并保存到本地
+    figure; 
+    imshow(I); 
+    hold on;
+    rectangle('Position', position, 'EdgeColor', 'red', 'LineWidth', 2);
+    set(gcf, 'ToolBar', 'none');
+    hold off;
+    
+    % 将图像中带有红框的部分保存到新的文件夹
+    F = getframe(gca);
+    figureCropped = F.cdata;
+    figureFilename = fullfile(figureFolderPath, sprintf('figure_%d.bmp', i));
+    imwrite(figureCropped, figureFilename);
+    close(gcf);
+    
+    % 调用 plot3DEnergy 函数，显示三维能量图
+    plot3DEnergy(I, position);  % 显示每个裁剪图像的3D能量图
+end
+
+numRows = floor(sqrt(numImages));
+numCols = ceil(numImages / numRows);
+
+figure;
+for i = 1:numImages
+    subplot(numRows, numCols, i);
+    imshow(croppedImages{i});
+    title(['Image ' num2str(i)], 'Interpreter', 'latex'); % LaTeX 解释器
+end
+
+newFolderPath = './subImage'; 
+if ~exist(newFolderPath, 'dir')
+    mkdir(newFolderPath)
+end
+
+for i = 1:numImages
+    newFilename = fullfile(newFolderPath, sprintf('crop_%d.bmp', i));
+    imwrite(croppedImages{i}, newFilename);
+end
+
+% customWait函数定义
+function pos = customWait(hROI)
+    l = addlistener(hROI, 'ROIClicked', @(src, evt) clickCallback(src, evt));
+    uiwait;
+    pos = hROI.Position;
+    delete(l);
+end
+
+% clickCallback函数定义
+function clickCallback(~, evt)
+    if strcmp(evt.SelectionType, 'double')
+        uiresume;
+    end
+end
+
+function plot3DEnergy(I, position)
+    % 确保输入图像 I 不为空
+    if isempty(I)
+        error('输入图像为空，无法进行裁剪');
+    end
+
+    % 检查 position 是否有效
+    if isempty(position) || position(3) <= 0 || position(4) <= 0
+        error('裁剪区域无效，请重新选择');
+    end
+    
+    % 打印裁剪区域的位置，方便调试
+    disp('裁剪区域位置:');
+    disp(position);
+    
+    % 获取图像的尺寸
+    [height, width, ~] = size(I);
+
+    % 修正裁剪区域，确保不会超出图像的边界
+    x = max(1, position(1)); % 确保 x 不小于 1
+    y = max(1, position(2)); % 确保 y 不小于 1
+    w = min(position(3), width - x + 1); % 确保宽度不超出图像
+    h = min(position(4), height - y + 1); % 确保高度不超出图像
+    correctedPosition = [x, y, w, h];
+    
+    % 获取裁剪区域
+    croppedImage = imcrop(I, correctedPosition);
+
+    % 检查裁剪后的图像是否为空
+    if isempty(croppedImage)
+        error('裁剪区域为空，请检查裁剪位置');
+    end
+
+    % 显示裁剪后的图像
+    figure;
+    imshow(croppedImage);
+    title('裁剪后的图像', 'Interpreter', 'latex'); % LaTeX 解释器
+
+    % 将裁剪后的图像转换为灰度图（如果是彩色图像）
+    if size(croppedImage, 3) == 3  % RGB 图像
+        Z = double(im2gray(croppedImage));  % 转换为灰度图
+    else
+        Z = double(croppedImage);  % 已经是灰度图，直接使用
+    end
+    
+    % 检查灰度图 Z 的数值范围
+    disp(['Z 的最小值: ', num2str(min(Z(:)))]);
+    disp(['Z 的最大值: ', num2str(max(Z(:)))]);
+    
+    % 创建网格，用于绘制 3D 图
+    [X, Y] = meshgrid(1:size(croppedImage, 2), 1:size(croppedImage, 1));
+    
+    % 绘制 3D 曲面图
+    figure;
+    surf(X, Y, Z);
+    shading interp;  % 插值阴影，使图像更平滑
+    colormap jet;    % 设置颜色映射
+    % colorbar;      % 如果需要显示颜色条，可以取消注释
+    
+    % 设置坐标轴和颜色范围
+    axis tight;
+    caxis([min(Z(:)), max(Z(:))]);  % 设置颜色映射的范围为 Z 的最小值和最大值
+    xlabel('X', 'Interpreter', 'latex'); % LaTeX 解释器
+    ylabel('Y', 'Interpreter', 'latex'); % LaTeX 解释器
+    zlabel('Energy (Intensity)', 'Interpreter', 'latex'); % LaTeX 解释器
+    title('3D Energy Visualization', 'Interpreter', 'latex'); % LaTeX 解释器
+end
